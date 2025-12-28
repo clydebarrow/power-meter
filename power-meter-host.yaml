@@ -1,0 +1,46 @@
+esphome:
+  name: host-lvgl
+  platformio_options:
+    build_unflags: -Werror=all
+    board_build.flash_mode: dio
+
+
+host:
+  mac_address: "62:23:45:AF:B3:DD"
+
+api:
+  reboot_timeout: 0s
+
+logger:
+  level: DEBUG
+
+touchscreen:
+  - platform: sdl
+    id: my_touchscreen
+    on_release:
+      then:
+        - if:
+            condition: lvgl.is_paused
+            then:
+              - lvgl.resume:
+              - lvgl.widget.redraw:
+              - light.turn_on: lcd_backlight
+
+display:
+  - platform: sdl
+    auto_clear_enabled: false
+    dimensions:
+      width: 800
+      height: 480
+
+packages:
+  lvgl: !include power-meter-lvgl.yaml
+  climate: !include power-meter-logic.yaml
+
+output:
+  - platform: template
+    id: backlight_output
+    type: float
+    write_action:
+      logger.log: light updated
+

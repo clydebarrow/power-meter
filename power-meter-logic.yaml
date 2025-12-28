@@ -1,0 +1,57 @@
+sensor:
+  - id: inverter_1_power_offset
+    platform: template
+    name: "Inverter 1 offset"
+    accuracy_decimals: 0
+    unit_of_measurement: W
+    device_class: power
+
+  - id: inverter_2_power_offset
+    platform: template
+    name: "Inverter 2 offset"
+    accuracy_decimals: 0
+    unit_of_measurement: W
+    device_class: power
+
+number:
+  - platform: template
+    id: grid_offset
+    name: Grid Offset
+    min_value: -10000.0
+    max_value: 10000.0
+    step: 500
+    restore_value: true
+    initial_value: 0.0
+    optimistic: true
+
+script:
+  - id: adjust_offsets
+    then:
+      lambda: |-
+        // calculate discharge power - negative amps * volts
+        static const auto batt_1_capacity = 400.0f;
+        static const auto batt_2_capacity = 460.0f;
+        static const auto batt_1_factor = batt_1_capacity / (batt_1_capacity + batt_2_capacity) * 2.0f;
+        static const auto batt_2_factor = batt_2_capacity / (batt_1_capacity + batt_2_capacity) * 2.0f;
+
+        auto pwr_1 = id(inverter_1_battery_power).state;
+        auto pwr_2 = id(inverter_2_battery_power).state;
+        auto total_power = (pwr_1 + pwr_2);
+
+        auto batt_1 = id(inverter_1_battery_charge_state).state / 100.0f - 0.2f;
+        auto batt_2 = id(inverter_2_battery_charge_state).state / 100.0f - 0.2f;
+
+        auto target_1 = total_power * batt_1 / (batt_1 + batt_2);
+        auto target_2 = total_power * batt_2 / (batt_1 + batt_2);
+        if (pwr_1 < 0 && pwr_2 < 0) {
+          // reverse the weighting when charging
+          target_2 *= batt_1_factor;
+          target_1 *= batt_2_factor;
+        } else {
+          target_1 *= batt_1_factor;
+          target_2 *= batt_2_factor;
+        }
+        id(inverter_1_power_offset).publish_state(pwr_1 - target_1 + id(grid_offset).state);
+        id(inverter_2_power_offset).publish_state(pwr_2 - target_2 + id(grid_offset).state);
+        ESP_LOGD("offsets", "total pwr = %f, pwr_1=%f vs target=%f, pwr_2=%f vs target=%f", total_power, pwr_1, target_1, pwr_2, target_2);
+        ESP_LOGD("values", "Offset 1 = %f, offset 2 = %f", id(inverter_1_power_offset), id(inverter_2_power_offset));

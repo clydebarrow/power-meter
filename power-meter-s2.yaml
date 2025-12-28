@@ -1,0 +1,164 @@
+substitutions:
+  friendly_name: Power Meter
+
+esphome:
+  name: power-meter
+  friendly_name: ${friendly_name}
+  platformio_options:
+    build_unflags: -Werror=all
+    board_build.flash_mode: dio
+
+
+esp32:
+  board: um_feathers2
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+
+api:
+  mac_address: 34:85:18:77:41:18
+  encryption:
+    key: !secret encryption_key
+
+logger:
+  level: DEBUG
+  hardware_uart: UART0
+  logs:
+    wifi: INFO
+    modbus_controller.sensor: INFO
+    modbus_controller: INFO
+    sensor: INFO
+
+wifi: !include wifi.yaml
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+external_components:
+  - source:
+      type: git
+      url: "file:///Users/clyde/dev/opensourceprojects/esp/esphome"
+      ref: usb-serial
+    components: [usb_uart, usb_host]
+    refresh: 30s
+
+usb_uart:
+  - type: ch34X
+    channels:
+      - id: uch_1
+        baud_rate: 9600
+        buffer_size: 1024
+        debug: false
+        dummy_receiver: false
+      - id: uch_2
+        baud_rate: 9600
+        buffer_size: 1024
+        debug: false
+        dummy_receiver: false
+      - id: uch_3
+        buffer_size: 1024
+        baud_rate: 9600
+        debug: false
+        dummy_receiver: false
+
+packages:
+  modbus: !include power-meter-modbus.yaml
+  climate: !include power-meter-logic.yaml
+  sensors: !include power-meter-sensors.yaml
+
+button:
+  - platform: safe_mode
+    name: Safe Mode Boot
+    entity_category: diagnostic
+
+
+
+script:
+  - id: power_label_update
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "power  %f"
+          args: [x]
+        
+  - id: voltage_label_update
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "voltage  %f"
+          args: [x]
+
+  - id: update_pv_power_1
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "PV Power 1: %.0fW"
+          args: [x]
+
+  - id: update_pv_power_2
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "PV Power 2: %.0fW"
+          args: [x]
+
+  - id: update_pv_power_total
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "Total PV Power: %.0fW"
+          args: [x]
+
+  - id: update_battery_power_1
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "Battery Power 1: %.0fW"
+          args: [x]
+
+  - id: update_battery_power_2
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "Battery Power 2: %.0fW"
+          args: [x]
+
+  - id: update_battery_power_total
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "Total Battery Power: %.0fW"
+          args: [x]
+
+  - id: update_battery_charge_1
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "Battery Charge 1: %.0f%%"
+          args: [x]
+
+  - id: update_battery_charge_2
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "Battery Charge 2: %.0f%%"
+          args: [x]
+
+  - id: update_battery_charge_total
+    parameters:
+      x: float
+    then:
+      - logger.log:
+          format: "Total Battery Charge: %.0f%%"
+          args: [x]

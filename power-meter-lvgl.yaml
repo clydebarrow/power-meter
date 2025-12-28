@@ -1,0 +1,571 @@
+substitutions:
+  home_icon: "\U000F02DC"
+  menu_left: "\U000F0731"
+  menu_right: "\U000F0734"
+  close: "\U000F0156"
+  delete: "\U000F01B4"
+  backspace: "\U000F006E"
+  check: "\U000F012C"
+  arrow_down: "\U000F004B"
+
+
+font:
+  - file: "gfonts://Roboto"
+    id: roboto_dflt
+    size: 18
+    bpp: 2
+    extras:
+      - file: fonts/materialdesignicons-webfont.ttf
+        glyphs: [
+          "${home_icon}",
+          "${menu_left}",
+          "${menu_right}",
+          "${close}",
+          "${delete}",
+          "${backspace}",
+          "${check}",
+          "${arrow_down}",
+          ]
+  - file: "gfonts://Roboto"
+    glyphs: "\"#'!%()+=,-_.:°/?0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz"
+    id: roboto32
+    size: 32
+    bpp: 4
+
+  - file: "gfonts://Roboto"
+    id: roboto40
+    size: 40
+    bpp: 4
+
+  - file: "gfonts://Roboto Condensed"
+    id: roboto64
+    size: 64
+    bpp: 4
+
+color:
+  - id: chg_col
+    red: 0.3
+    green: 1.0
+    blue: 0.3
+  - id: dis_col
+    red: 1.0
+    green: 0.3
+    blue: 0.3
+  - id: amber
+    red: 1.0
+    green: 0.75
+    blue: 0
+    
+light:
+  - platform: monochromatic
+    output: backlight_output
+    name: LCD Backlight
+    id: lcd_backlight
+    restore_mode: ALWAYS_ON
+    default_transition_length: 0s
+    gamma_correct: 1.0
+
+lvgl:
+  on_idle:
+    - timeout: 30s
+      then:
+        - lvgl.pause:
+            show_snow: true
+        - light.turn_off: lcd_backlight
+    
+  bg_color: 0x080808
+  default_font: roboto_dflt
+
+  style_definitions:
+    - id: btn_style
+      text_font: roboto32
+    - id: caption_style
+      grid_cell_x_align: center
+      grid_cell_y_align: center
+      text_font: roboto32
+      text_align: center
+      text_color: 0xa0a0cf
+    - id: value_style
+      grid_cell_x_align: center
+      grid_cell_y_align: center
+      text_font: roboto40
+      text_align: center
+      text_color: 0x08d8e8
+    
+  widgets:
+  - tabview:
+      bg_color: 0x080808
+      height: 100%
+      width: 100%
+      position: bottom
+      tab_style:
+        height: 15%
+        bg_color: 0x202020
+        items:
+          styles: caption_style
+          text_color: 0x8080ff
+          checked:
+            text_color: 0xc0c0ff
+      
+      tabs:
+      - id: grid_tab
+        name: Overview
+        bg_opa: transp
+        layout:
+          type: grid
+          grid_row_align: center
+          grid_rows: [fr(1), fr(1), fr(1), fr(1)]
+          grid_columns: [fr(1), fr(1), fr(1)]
+        widgets:
+          - label:
+              styles: caption_style
+              text: Grid
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 0
+
+          - label:
+              id: voltage_value
+              styles: value_style
+              text: "-"
+              grid_cell_row_pos: 1
+              grid_cell_column_pos: 0
+          - label:
+              id: power_value
+              styles: value_style
+              text: "-"
+              grid_cell_row_pos: 2
+              grid_cell_column_pos: 0
+          - label:
+              id: import_export
+              styles: value_style
+              text: "-"
+              grid_cell_row_pos: 3
+              grid_cell_column_pos: 0
+
+          - label:
+              styles: value_style
+              text: "W PV"
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 1
+          - label:
+              id: pv_power
+              styles: value_style
+              text: "--"
+              grid_cell_row_pos: 1
+              grid_cell_column_pos: 1
+          - label:
+              styles: value_style
+              text: "W BATT"
+              grid_cell_row_pos: 2
+              grid_cell_column_pos: 1
+          - label:
+              id: batt_power
+              styles: value_style
+              text: "--"
+              grid_cell_row_pos: 3
+              grid_cell_column_pos: 1
+
+          - arc:
+              #width: 90%
+              grid_cell_x_align: center
+              grid_cell_y_align: center
+              id: battery_arc
+              y: 200
+              x: 20
+              arc_color: 0x808080
+              indicator:
+                arc_color: 0x00FF00
+              value: 20
+              adjustable: false
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 2
+              grid_cell_row_span: 2
+          - label:
+              id: batt_state
+              styles: value_style
+              text: "--%"
+              grid_cell_row_pos: 3
+              grid_cell_column_pos: 2
+
+      - id: inverter_1_tab
+        name: "Inv #1"
+        bg_opa: transp
+        layout:
+          type: grid
+          grid_row_align: center
+          grid_rows: [fr(1), fr(1)]
+          grid_columns: [fr(1), fr(1), fr(1)]
+        widgets:
+          - label:
+              styles: caption_style
+              text: PV Power
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 0
+          - label:
+              styles: value_style
+              id: pv_power_1
+              grid_cell_row_pos: 1
+              grid_cell_column_pos: 0
+          - label:
+              styles: caption_style
+              text: Battery Power
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 1
+          - label:
+              styles: value_style
+              id: batt_power_1
+              grid_cell_row_pos: 1
+              grid_cell_column_pos: 1
+          - label:
+              styles: caption_style
+              text: Battery Charge
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 2
+          - label:
+              styles: value_style
+              id: batt_state_1
+              grid_cell_row_pos: 1
+              grid_cell_column_pos: 2
+          
+      - id: inverter_2_tab
+        name: "Inv #2"
+        bg_opa: transp
+        layout:
+          type: grid
+          grid_row_align: center
+          grid_rows: [fr(1), fr(1)]
+          grid_columns: [fr(1), fr(1), fr(1)]
+        widgets:
+          - label:
+              styles: caption_style
+              text: PV Power
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 0
+          - label:
+              styles: value_style
+              id: pv_power_2
+              grid_cell_row_pos: 1
+              grid_cell_column_pos: 0
+          - label:
+              styles: caption_style
+              text: Battery Power
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 1
+          - label:
+              styles: value_style
+              id: batt_power_2
+              grid_cell_row_pos: 1
+              grid_cell_column_pos: 1
+          - label:
+              styles: caption_style
+              text: Battery Charge
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 2
+          - label:
+              styles: value_style
+              id: batt_state_2
+              grid_cell_row_pos: 1
+              grid_cell_column_pos: 2
+          
+sensor:
+  - platform: homeassistant
+    id: sensor_pv_power_1
+    entity_id: sensor.pv_power
+    on_value:
+      lvgl.label.update:
+        id: [pv_power_1]
+        text:
+          format: "%.0fW PV"
+          args: [x]
+  - platform: homeassistant
+    id: sensor_pv_power_2
+    entity_id: sensor.pv_power_2
+    on_value:
+      lvgl.label.update:
+        id: [pv_power_2]
+        text:
+          format: "%.0fW PV"
+          args: [x]
+  - platform: combination
+    type: linear
+    id: sensor_pv_power_total
+    sources:
+      - source: sensor_pv_power_1
+        coeffecient: 1.0
+      - source: sensor_pv_power_2
+        coeffecient: 1.0
+    on_value:
+      - lvgl.label.update:
+          id: pv_power
+          text:
+            format: "%.0f"
+            args: [x]
+
+  - platform: homeassistant
+    id: sensor_battery_power_1
+    entity_id: sensor.battery_power
+    on_value:
+      then:
+      - script.execute: adjust_offsets
+      - if:
+          condition:
+            lambda: return x < 0;
+          then:
+            - lvgl.label.update:
+                id: [batt_power_1]
+                text:
+                  format: "%.0fW"
+                  args: [-x]
+                text_color: chg_col
+          else:
+            - lvgl.label.update:
+                id: [batt_power_1]
+                text:
+                  format: "%.0fW"
+                  args: [x]
+                text_color: dis_col
+  - platform: homeassistant
+    id: sensor_battery_power_2
+    entity_id: sensor.battery_power_2
+    on_value:
+      - script.execute: adjust_offsets
+      - if:
+          condition:
+            lambda: return x < 0;
+          then:
+            lvgl.label.update:
+              id: [batt_power_2]
+              text:
+                format: "%.0fW"
+                args: [-x]
+              text_color: chg_col
+          else:
+            lvgl.label.update:
+              id: [batt_power_2]
+              text:
+                format: "%.0fW"
+                args: [x]
+              text_color: dis_col
+
+  - platform: combination
+    type: linear
+    id: sensor_battery_power_total
+    sources:
+      - source: sensor_battery_power_1
+        coeffecient: 1.0
+      - source: sensor_battery_power_2
+        coeffecient: 1.0
+    on_value:
+      - lvgl.label.update:
+          id: batt_power
+          text:
+            format: "%.0f"
+            args: [x]
+
+  - platform: homeassistant
+    id: sensor_battery_charge_1
+    entity_id: sensor.battery_state_of_charge
+    on_value:
+      lvgl.label.update:
+        id: batt_state_1
+        text:
+          format: "%.0f%%"
+          args: [x]
+  - platform: homeassistant
+    id: sensor_battery_charge_2
+    entity_id: sensor.battery_state_of_charge_2
+    on_value:
+      lvgl.label.update:
+        id: [batt_state_2]
+        text:
+          format: "%.0f%%"
+          args: [x]
+
+  - platform: combination
+    type: linear
+    id: sensor_battery_charge_total
+    sources:
+      - source: sensor_battery_charge_1
+        coeffecient: 0.46
+      - source: sensor_battery_charge_2
+        coeffecient: 0.53
+    on_value:
+      - lvgl.arc.update:
+          id: battery_arc
+          value: !lambda return x;
+      - lvgl.label.update:
+          id: batt_state
+          text:
+            format: "%.0f%%"
+            args: [x]
+
+
+  - platform: homeassistant
+    id: inverter_1_battery_power
+    entity_id: sensor.bms_battery_power
+    on_value:
+      script.execute: adjust_offsets
+  - platform: homeassistant
+    id: inverter_2_battery_power
+    entity_id: sensor.white_bms_battery_power
+    on_value:
+      script.execute: adjust_offsets
+  - platform: homeassistant
+    id: inverter_1_battery_charge_state
+    entity_id: sensor.battery_state_of_charge
+  - platform: homeassistant
+    id: inverter_2_battery_charge_state
+    entity_id: sensor.battery_state_of_charge_2
+
+
+script:
+  - id: power_label_update
+    parameters:
+      x: float
+    then:
+      - lvgl.label.update:
+          id: power_value
+          text:
+            format: "%.1f"
+            args: [fabs(x / 1000.0)]
+      - if:
+          condition:
+            lambda: return x < 0;
+          then:
+            lvgl.label.update:
+              id: import_export
+              text: Import
+              text_color: dis_col
+          else:
+            lvgl.label.update:
+              id: import_export
+              text: Export
+              text_color: chg_col
+        
+  - id: voltage_label_update
+    parameters:
+      x: float
+    then:
+      - lvgl.label.update:
+          id: voltage_value
+          text:
+            format: "%.1f"
+            args: [x]
+
+  - id: update_pv_power_1
+    parameters:
+      x: float
+    then:
+      - lvgl.label.update:
+          id: [pv_power_1]
+          text:
+            format: "%.0fW PV"
+            args: [x]
+
+  - id: update_pv_power_2
+    parameters:
+      x: float
+    then:
+      - lvgl.label.update:
+          id: [pv_power_2]
+          text:
+            format: "%.0fW PV"
+            args: [x]
+
+  - id: update_pv_power_total
+    parameters:
+      x: float
+    then:
+      - lvgl.label.update:
+          id: pv_power
+          text:
+            format: "%.0f"
+            args: [x]
+
+  - id: update_battery_power_1
+    parameters:
+      x: float
+    then:
+      - if:
+          condition:
+            lambda: return x < 0;
+          then:
+            - lvgl.label.update:
+                id: [batt_power_1]
+                text:
+                  format: "%.0fW"
+                  args: [-x]
+                text_color: chg_col
+          else:
+            - lvgl.label.update:
+                id: [batt_power_1]
+                text:
+                  format: "%.0fW"
+                  args: [x]
+                text_color: dis_col
+
+  - id: update_battery_power_2
+    parameters:
+      x: float
+    then:
+      - if:
+          condition:
+            lambda: return x < 0;
+          then:
+            - lvgl.label.update:
+                id: [batt_power_2]
+                text:
+                  format: "%.0fW"
+                  args: [-x]
+                text_color: chg_col
+          else:
+            - lvgl.label.update:
+                id: [batt_power_2]
+                text:
+                  format: "%.0fW"
+                  args: [x]
+                text_color: dis_col
+
+  - id: update_battery_power_total
+    parameters:
+      x: float
+    then:
+      - lvgl.label.update:
+          id: batt_power
+          text:
+            format: "%.0f"
+            args: [x]
+
+  - id: update_battery_charge_1
+    parameters:
+      x: float
+    then:
+      - lvgl.label.update:
+          id: batt_state_1
+          text:
+            format: "%.0f%%"
+            args: [x]
+
+  - id: update_battery_charge_2
+    parameters:
+      x: float
+    then:
+      - lvgl.label.update:
+          id: [batt_state_2]
+          text:
+            format: "%.0f%%"
+            args: [x]
+
+  - id: update_battery_charge_total
+    parameters:
+      x: float
+    then:
+      - lvgl.arc.update:
+          id: battery_arc
+          value: !lambda return x;
+      - lvgl.label.update:
+          id: batt_state
+          text:
+            format: "%.0f%%"
+            args: [x]
+
