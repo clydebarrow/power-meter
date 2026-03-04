@@ -270,7 +270,7 @@ lvgl:
 sensor:
   - platform: homeassistant
     id: sensor_pv_power_1
-    entity_id: sensor.pv_power
+    entity_id: sensor.goodwe_yellow_pv_power
     on_value:
       lvgl.label.update:
         id: [pv_power_1]
@@ -279,7 +279,7 @@ sensor:
           args: [x]
   - platform: homeassistant
     id: sensor_pv_power_2
-    entity_id: sensor.pv_power_2
+    entity_id: sensor.goodwe_white_pv_power
     on_value:
       lvgl.label.update:
         id: [pv_power_2]
@@ -291,9 +291,9 @@ sensor:
     id: sensor_pv_power_total
     sources:
       - source: sensor_pv_power_1
-        coeffecient: 1.0
+        coefficient: 1.0
       - source: sensor_pv_power_2
-        coeffecient: 1.0
+        coefficient: 1.0
     on_value:
       - lvgl.label.update:
           id: pv_power
@@ -303,7 +303,7 @@ sensor:
 
   - platform: homeassistant
     id: sensor_battery_power_1
-    entity_id: sensor.battery_power
+    entity_id: sensor.bms_battery_power
     on_value:
       then:
       - script.execute: adjust_offsets
@@ -326,7 +326,7 @@ sensor:
                 text_color: dis_col
   - platform: homeassistant
     id: sensor_battery_power_2
-    entity_id: sensor.battery_power_2
+    entity_id: sensor.white_bms_battery_power
     on_value:
       - script.execute: adjust_offsets
       - if:
@@ -352,9 +352,9 @@ sensor:
     id: sensor_battery_power_total
     sources:
       - source: sensor_battery_power_1
-        coeffecient: 1.0
+        coefficient: 1.0
       - source: sensor_battery_power_2
-        coeffecient: 1.0
+        coefficient: 1.0
     on_value:
       - lvgl.label.update:
           id: batt_power
@@ -364,7 +364,7 @@ sensor:
 
   - platform: homeassistant
     id: sensor_battery_charge_1
-    entity_id: sensor.battery_state_of_charge
+    entity_id: sensor.goodwe_yellow_battery_charge_state
     on_value:
       lvgl.label.update:
         id: batt_state_1
@@ -373,7 +373,7 @@ sensor:
           args: [x]
   - platform: homeassistant
     id: sensor_battery_charge_2
-    entity_id: sensor.battery_state_of_charge_2
+    entity_id: sensor.goodwe_white_battery_charge_state
     on_value:
       lvgl.label.update:
         id: [batt_state_2]
@@ -386,9 +386,9 @@ sensor:
     id: sensor_battery_charge_total
     sources:
       - source: sensor_battery_charge_1
-        coeffecient: 0.46
+        coefficient: 0.46
       - source: sensor_battery_charge_2
-        coeffecient: 0.53
+        coefficient: 0.53
     on_value:
       - lvgl.arc.update:
           id: battery_arc
@@ -412,10 +412,10 @@ sensor:
       script.execute: adjust_offsets
   - platform: homeassistant
     id: inverter_1_battery_charge_state
-    entity_id: sensor.battery_state_of_charge
+    entity_id: sensor.goodwe_yellow_battery_charge_state
   - platform: homeassistant
     id: inverter_2_battery_charge_state
-    entity_id: sensor.battery_state_of_charge_2
+    entity_id: sensor.goodwe_white_battery_charge_state
 
 
 script:

@@ -1,7 +1,7 @@
 sensor:
   - platform: homeassistant
     id: sensor_pv_power_1
-    entity_id: sensor.pv_power
+    entity_id: sensor.goodwe_yellow_pv_power
     on_value:
       - script.execute:
           id: update_pv_power_1
@@ -9,7 +9,7 @@ sensor:
 
   - platform: homeassistant
     id: sensor_pv_power_2
-    entity_id: sensor.pv_power_2
+    entity_id: sensor.goodwe_white_pv_power
     on_value:
       - script.execute:
           id: update_pv_power_2
@@ -28,7 +28,7 @@ sensor:
 
   - platform: homeassistant
     id: sensor_battery_power_1
-    entity_id: sensor.battery_power
+    entity_id: sensor.bms_battery_power
     on_value:
       then:
         - script.execute: adjust_offsets
@@ -58,7 +58,7 @@ sensor:
 
   - platform: homeassistant
     id: sensor_battery_charge_1
-    entity_id: sensor.battery_state_of_charge
+    entity_id: sensor.goodwe_yellow_battery_charge_state
     on_value:
       - script.execute:
           id: update_battery_charge_1
@@ -66,7 +66,7 @@ sensor:
 
   - platform: homeassistant
     id: sensor_battery_charge_2
-    entity_id: sensor.battery_state_of_charge_2
+    entity_id: sensor.goodwe_white_battery_charge_state
     on_value:
       - script.execute:
           id: update_battery_charge_2
@@ -77,9 +77,9 @@ sensor:
     id: sensor_battery_charge_total
     sources:
       - source: sensor_battery_charge_1
-        coeffecient: 0.46
+        coefficient: 0.46
       - source: sensor_battery_charge_2
-        coeffecient: 0.53
+        coefficient: 0.53
     on_value:
       - script.execute:
           id: update_battery_charge_total
@@ -102,20 +102,20 @@ sensor:
 
   - platform: homeassistant
     id: jakiper_charge_state
+    name: Jakiper Charge State
     entity_id: sensor.bms_jakiper_charge
   - platform: homeassistant
     id: byd_charge_state
+    name: BYD Charge State
     entity_id: sensor.bms_byd_charge
 
 #  - platform: homeassistant
 #    id: inverter_1_battery_charge_state
 #    entity_id: sensor.battery_state_of_charge
 
-  - platform: combination
-    type: mean
+  - platform: template
     id: inverter_1_battery_charge_state
-    sources:
-      - source: byd_charge_state
-      - source: jakiper_charge_state
+    lambda: |-
+      return (id(byd_charge_state).state + id(jakiper_charge_state).state)/ 2.0;
 
 

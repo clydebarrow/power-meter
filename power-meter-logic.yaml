@@ -35,11 +35,16 @@ script:
         static const auto batt_2_factor = batt_2_capacity / (batt_1_capacity + batt_2_capacity) * 2.0f;
 
         auto pwr_1 = id(inverter_1_battery_power).state;
+        if (isnan(pwr_1)) pwr_1 = 0.0f;
         auto pwr_2 = id(inverter_2_battery_power).state;
+        if (isnan(pwr_2)) pwr_2 = 0.0f;
         auto total_power = (pwr_1 + pwr_2);
 
         auto batt_1 = id(inverter_1_battery_charge_state).state / 100.0f - 0.2f;
+        if (isnan(batt_1)) batt_1 = 0.0f;
         auto batt_2 = id(inverter_2_battery_charge_state).state / 100.0f - 0.2f;
+        if (isnan(batt_2)) batt_2 = 0.0f;
+        ESP_LOGD("offsets", "batt1 %f, batt2 %f, pwr1 %f, pwr2 %f", batt_1, batt_2, pwr_1, pwr_2);
 
         auto target_1 = total_power * batt_1 / (batt_1 + batt_2);
         auto target_2 = total_power * batt_2 / (batt_1 + batt_2);
@@ -51,7 +56,15 @@ script:
           target_1 *= batt_1_factor;
           target_2 *= batt_2_factor;
         }
-        id(inverter_1_power_offset).publish_state(pwr_1 - target_1 + id(grid_offset).state);
-        id(inverter_2_power_offset).publish_state(pwr_2 - target_2 + id(grid_offset).state);
         ESP_LOGD("offsets", "total pwr = %f, pwr_1=%f vs target=%f, pwr_2=%f vs target=%f", total_power, pwr_1, target_1, pwr_2, target_2);
-        ESP_LOGD("values", "Offset 1 = %f, offset 2 = %f", id(inverter_1_power_offset), id(inverter_2_power_offset));
+        target_1 = pwr_1 - target_1 + id(grid_offset).state;
+        target_2 = pwr_2 - target_2 + id(grid_offset).state;
+        ESP_LOGD("targets", "%f, %f", target_1, target_2);
+        if (isnan(target_1) || isnan(target_2)) {
+          target_1 = 0;
+          target_2 = 0;
+        }
+        id(inverter_1_power_offset).publish_state(target_1);
+        id(inverter_2_power_offset).publish_state(target_2);
+        ESP_LOGD("values", "Offset 1 = %f", id(inverter_1_power_offset).state);
+        ESP_LOGD("values", "Offset 2 = %f", id(inverter_2_power_offset).state);
