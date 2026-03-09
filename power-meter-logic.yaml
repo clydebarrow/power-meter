@@ -33,38 +33,133 @@ script:
         static const auto batt_2_capacity = 460.0f;
         static const auto batt_1_factor = batt_1_capacity / (batt_1_capacity + batt_2_capacity) * 2.0f;
         static const auto batt_2_factor = batt_2_capacity / (batt_1_capacity + batt_2_capacity) * 2.0f;
+        const double k = 50.0;   // balancing gain (W/%)
 
-        auto pwr_1 = id(inverter_1_battery_power).state;
-        if (isnan(pwr_1)) pwr_1 = 0.0f;
-        auto pwr_2 = id(inverter_2_battery_power).state;
-        if (isnan(pwr_2)) pwr_2 = 0.0f;
-        auto total_power = (pwr_1 + pwr_2);
 
-        auto batt_1 = id(inverter_1_battery_charge_state).state / 100.0f - 0.2f;
-        if (isnan(batt_1)) batt_1 = 0.0f;
-        auto batt_2 = id(inverter_2_battery_charge_state).state / 100.0f - 0.2f;
-        if (isnan(batt_2)) batt_2 = 0.0f;
-        ESP_LOGD("offsets", "batt1 %f, batt2 %f, pwr1 %f, pwr2 %f", batt_1, batt_2, pwr_1, pwr_2);
+        struct BatteryState
+        {
+            double soc;           // State of charge          (%, 0 – 100)
+            double power;         // Current charge/discharge  (W, +ve = charging)
+            double capacity;      // Energy capacity           (Wh, must be > 0)
+            double max_charge;    // Maximum charging power    (W, +ve)
+            double max_discharge; // Maximum discharging power (W, +ve magnitude)
+        };
+        // capacity corrected for min 10% SOC
+        BatteryState b1{
+          clamp_at_least((id(inverter_1_battery_charge_state).state - 10) / 0.9, 0.0),
+          -id(inverter_1_battery_power).state,
+          360.0,
+          5000,
+          5000
+        };
+        BatteryState b2{
+          clamp_at_least((id(inverter_2_battery_charge_state).state - 10) / 0.9, 0.0),
+          -id(inverter_2_battery_power).state,
+          414.0,
+          5000,
+          5000
+        };
 
-        auto target_1 = total_power * batt_1 / (batt_1 + batt_2);
-        auto target_2 = total_power * batt_2 / (batt_1 + batt_2);
-        if (pwr_1 < 0 && pwr_2 < 0) {
-          // reverse the weighting when charging
-          target_2 *= batt_1_factor;
-          target_1 *= batt_2_factor;
-        } else {
-          target_1 *= batt_1_factor;
-          target_2 *= batt_2_factor;
-        }
-        ESP_LOGD("offsets", "total pwr = %f, pwr_1=%f vs target=%f, pwr_2=%f vs target=%f", total_power, pwr_1, target_1, pwr_2, target_2);
-        target_1 = pwr_1 - target_1 + id(grid_offset).state;
-        target_2 = pwr_2 - target_2 + id(grid_offset).state;
-        ESP_LOGD("targets", "%f, %f", target_1, target_2);
-        if (isnan(target_1) || isnan(target_2)) {
-          target_1 = 0;
-          target_2 = 0;
-        }
-        id(inverter_1_power_offset).publish_state(target_1);
-        id(inverter_2_power_offset).publish_state(target_2);
-        ESP_LOGD("values", "Offset 1 = %f", id(inverter_1_power_offset).state);
-        ESP_LOGD("values", "Offset 2 = %f", id(inverter_2_power_offset).state);
+        if (isnan(b1.soc)) b1.soc = 0.0f;
+        if (isnan(b2.soc)) b2.soc = 0.0f;
+
+        if (isnan(b1.power)) b1.power = 0.0f;
+        if (isnan(b2.power)) b2.power = 0.0f;
+        
+        ESP_LOGD("states", "Chrg1 %f, Chrg2 %f, pwr1 %f, pwr2 %f", b1.soc, b2.soc, b1.power, b2.power);
+        
+        // ---------------------------------------------------------------------------
+        // balance_batteries
+        //
+        // Calculates power correction offsets so that both batteries converge to the
+        // same capacity-weighted state of charge while sharing total power in
+        // proportion to their capacities.
+        //
+        // Parameters
+        //   b1, b2   – current state of each battery
+        //   k        – balancing gain (W / %)
+        //              Scales how aggressively SoC error drives the correction.
+        //              Start with  k = max_total_power / (2 * 100)  and tune.
+        //
+        // Sign convention
+        //   offset > 0  →  battery should increase its power (charge more / discharge less)
+        //   offset < 0  →  battery should decrease its power (charge less / discharge more)
+        //
+        // Power conservation
+        //   offset1 + offset2 == 0  (total power delivered to/from the bus is unchanged)
+        //
+        // Capacity weighting
+        //   Each battery's fair share of the total power is proportional to its
+        //   capacity.  The SoC error term then corrects residual imbalance, driving
+        //   both batteries toward the same normalised capacity-weighted SoC.
+        // ---------------------------------------------------------------------------
+
+    
+        // ---- Capacity-weighted power split -------------------------------------
+        const double total_capacity = b1.capacity + b2.capacity;
+        const double w1 = b1.capacity / total_capacity;   // fraction for battery 1
+        const double w2 = b2.capacity / total_capacity;   // fraction for battery 2
+    
+        const double total_power = b1.power + b2.power;
+    
+        const double p1_target = total_power * w1;         // ideal power share
+        const double p2_target = total_power * w2;
+    
+        // ---- Capacity-weighted SoC target -------------------------------------
+        // Both batteries should converge to this SoC value, which represents
+        // the aggregate charge state of the combined system.
+        const double soc_target = (b1.soc * b1.capacity + b2.soc * b2.capacity)
+                                  / total_capacity;
+    
+        // ---- SoC error correction ---------------------------------------------
+        // delta_soc > 0  →  battery 1 is above target  →  offset1 is negative
+        //                    (reduce its charge / increase its discharge)
+        const double delta_soc1 = b1.soc - soc_target;
+        const double delta_soc2 = b2.soc - soc_target;
+    
+        // ---- Combine power-share error and SoC error --------------------------
+        // Power-share term  : steers instantaneous power toward fair split
+        // SoC error term    : provides integral-like correction for accumulated
+        //                     imbalance (similar to a PI controller)
+        double raw_offset1 = (p1_target - b1.power) - k * delta_soc1;
+        double raw_offset2 = (p2_target - b2.power) - k * delta_soc2;
+    
+        // Force strict conservation before clamping:  offset1 + offset2 == 0
+        // Average any floating-point asymmetry.
+        const double mean = (raw_offset1 + raw_offset2) / 2.0;
+        raw_offset1 -= mean;
+        raw_offset2 -= mean;
+    
+        // ---- Clamp to hardware limits -----------------------------------------
+        // New power = current power + offset; must stay within rated limits.
+        const double p1_new_unclamped = b1.power + raw_offset1;
+        const double p2_new_unclamped = b2.power + raw_offset2;
+    
+        const double p1_clamped = std::clamp(p1_new_unclamped,
+                                             -b1.max_discharge,
+                                              b1.max_charge);
+        const double p2_clamped = std::clamp(p2_new_unclamped,
+                                             -b2.max_discharge,
+                                              b2.max_charge);
+    
+        // If one battery was clamped, redirect the surplus to the other so that
+        // total power is preserved as closely as possible.
+        const double surplus1 = p1_clamped - p1_new_unclamped; // 0 if not clamped
+        const double surplus2 = p2_clamped - p2_new_unclamped;
+    
+        double p1_final = std::clamp(p1_clamped + surplus2,
+                                     -b1.max_discharge, b1.max_charge);
+        double p2_final = std::clamp(p2_clamped + surplus1,
+                                     -b2.max_discharge, b2.max_charge);
+    
+        auto offset1    = p1_final - b1.power;
+        auto offset2    = p2_final - b2.power;
+
+        ESP_LOGD("offsets", "total pwr = %f, pwr_1=%f vs target=%f, pwr_2=%f vs target=%f", total_power, b1.power, p1_final, b2.power, p2_final);
+        ESP_LOGD("offsets", "Grid offset %f, Offset 1 = %f, Offset 2 = %f", id(grid_offset).state, offset1, offset2);
+
+        id(inverter_1_power_offset).publish_state(offset1 + id(grid_offset).state);
+        id(inverter_2_power_offset).publish_state(offset2 + id(grid_offset).state);
+
+
+

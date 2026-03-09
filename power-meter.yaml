@@ -2,6 +2,11 @@ substitutions:
   friendly_name: Power Meter
   name: power-meter
 
+#external_components:
+  #- source: github://pr#14614
+    #components: [modbus, uart]
+    #refresh: 1h
+
 esp32:
   variant: esp32s3
   flash_size: 8MB
