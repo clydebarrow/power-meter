@@ -15,26 +15,28 @@ modbus_controller:
     address: 0x3   ## address of the Modbus slave device on the bus
     modbus_id: modbus1
     setup_priority: -10
+
+modbus_server:
   - id: modbus_server_1
     modbus_id: modbus2
     address: 0x3
-    server_registers:
+    registers:
       - address: 0x47
         value_type: FP32
-        read_lambda: return id(pm_absorb).raw_state;
+        read_lambda: return id(pm_absorb).get_raw_state();
       - address: 0x49
         value_type: FP32
-        read_lambda: return id(pm_release).raw_state;
+        read_lambda: return id(pm_release).get_raw_state();
       - address: 0x4B
         value_type: FP32
-        read_lambda: return id(pm_reactive).raw_state;
+        read_lambda: return id(pm_reactive).get_raw_state();
       - address: 0x4D
         value_type: FP32
-        read_lambda: return id(pm_capacitive).raw_state;
+        read_lambda: return id(pm_capacitive).get_raw_state();
 
       - address: 0x61
         value_type: U_WORD
-        read_lambda: return id(pm_volts).raw_state;
+        read_lambda: return id(pm_volts).get_raw_state();
       - address: 0x62
         value_type: U_WORD
         read_lambda: return 0;
@@ -43,16 +45,16 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x64
         value_type: U_WORD
-        read_lambda: return id(pm_current).raw_state;
+        read_lambda: return id(pm_current).get_raw_state();
       - address: 0x65
         value_type: U_WORD
         read_lambda: return 0;
       - address: 0x66
         value_type: U_WORD
-        read_lambda: return id(pm_unknown1).raw_state;
+        read_lambda: return id(pm_unknown1).get_raw_state();
       - address: 0x67
         value_type: S_WORD
-        read_lambda: return id(pm_power).raw_state + id(inverter_1_power_offset).state;
+        read_lambda: return id(pm_power).get_raw_state() + id(inverter_1_power_offset).state;
       - address: 0x68
         value_type: U_WORD
         read_lambda: return 0;
@@ -61,11 +63,11 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x6A
         value_type: U_WORD
-        read_lambda: return id(pm_power_2).raw_state + id(inverter_1_power_offset).state;
+        read_lambda: return id(pm_power_2).get_raw_state() + id(inverter_1_power_offset).state;
 
       - address: 0x6B
         value_type: S_WORD
-        read_lambda: return id(q_value).raw_state;
+        read_lambda: return id(q_value).get_raw_state();
       - address: 0x6C
         value_type: U_WORD
         read_lambda: return 0;
@@ -74,10 +76,10 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x6E
         value_type: U_WORD
-        read_lambda: return id(pm_unknown3).raw_state;
+        read_lambda: return id(pm_unknown3).get_raw_state();
       - address: 0x6F
         value_type: U_WORD
-        read_lambda: return id(s_value).raw_state;
+        read_lambda: return id(s_value).get_raw_state();
       - address: 0x70
         value_type: U_WORD
         read_lambda: return 0;
@@ -86,10 +88,10 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x72
         value_type: U_WORD
-        read_lambda: return id(pm_unknown4).raw_state;
+        read_lambda: return id(pm_unknown4).get_raw_state();
       - address: 0x73
         value_type: U_WORD
-        read_lambda: return id(pm_pf).raw_state;
+        read_lambda: return id(pm_pf).get_raw_state();
       - address: 0x74
         value_type: U_WORD
         read_lambda: return 0;
@@ -98,10 +100,10 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x76
         value_type: U_WORD
-        read_lambda: return id(pm_unknown5).raw_state;
+        read_lambda: return id(pm_unknown5).get_raw_state();
       - address: 0x77
         value_type: U_WORD
-        read_lambda: return id(f_value).raw_state;
+        read_lambda: return id(f_value).get_raw_state();
       - address: 0x78
         value_type: U_WORD
         read_lambda: return 0;
@@ -150,23 +152,23 @@ modbus_controller:
   - id: modbus_server_2
     modbus_id: modbus3
     address: 0x3
-    server_registers:
+    registers:
       - address: 0x47
         value_type: FP32
-        read_lambda: return id(pm_absorb).raw_state;
+        read_lambda: return id(pm_absorb).get_raw_state();
       - address: 0x49
         value_type: FP32
-        read_lambda: return id(pm_release).raw_state;
+        read_lambda: return id(pm_release).get_raw_state();
       - address: 0x4B
         value_type: FP32
-        read_lambda: return id(pm_reactive).raw_state;
+        read_lambda: return id(pm_reactive).get_raw_state();
       - address: 0x4D
         value_type: FP32
-        read_lambda: return id(pm_capacitive).raw_state;
+        read_lambda: return id(pm_capacitive).get_raw_state();
 
       - address: 0x61
         value_type: U_WORD
-        read_lambda: return id(pm_volts).raw_state;
+        read_lambda: return id(pm_volts).get_raw_state();
       - address: 0x62
         value_type: U_WORD
         read_lambda: return 0;
@@ -175,16 +177,16 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x64
         value_type: U_WORD
-        read_lambda: return id(pm_current).raw_state;
+        read_lambda: return id(pm_current).get_raw_state();
       - address: 0x65
         value_type: U_WORD
         read_lambda: return 0;
       - address: 0x66
         value_type: U_WORD
-        read_lambda: return id(pm_unknown1).raw_state;
+        read_lambda: return id(pm_unknown1).get_raw_state();
       - address: 0x67
         value_type: S_WORD
-        read_lambda: return id(pm_power).raw_state + id(inverter_2_power_offset).state;
+        read_lambda: return id(pm_power).get_raw_state() + id(inverter_2_power_offset).state;
       - address: 0x68
         value_type: U_WORD
         read_lambda: return 0;
@@ -193,11 +195,11 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x6A
         value_type: U_WORD
-        read_lambda: return id(pm_power_2).raw_state + id(inverter_2_power_offset).state;
+        read_lambda: return id(pm_power_2).get_raw_state() + id(inverter_2_power_offset).state;
 
       - address: 0x6B
         value_type: S_WORD
-        read_lambda: return id(q_value).raw_state;
+        read_lambda: return id(q_value).get_raw_state();
       - address: 0x6C
         value_type: U_WORD
         read_lambda: return 0;
@@ -206,10 +208,10 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x6E
         value_type: U_WORD
-        read_lambda: return id(pm_unknown3).raw_state;
+        read_lambda: return id(pm_unknown3).get_raw_state();
       - address: 0x6F
         value_type: U_WORD
-        read_lambda: return id(s_value).raw_state;
+        read_lambda: return id(s_value).get_raw_state();
       - address: 0x70
         value_type: U_WORD
         read_lambda: return 0;
@@ -218,10 +220,10 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x72
         value_type: U_WORD
-        read_lambda: return id(pm_unknown4).raw_state;
+        read_lambda: return id(pm_unknown4).get_raw_state();
       - address: 0x73
         value_type: U_WORD
-        read_lambda: return id(pm_pf).raw_state;
+        read_lambda: return id(pm_pf).get_raw_state();
       - address: 0x74
         value_type: U_WORD
         read_lambda: return 0;
@@ -230,10 +232,10 @@ modbus_controller:
         read_lambda: return 0;
       - address: 0x76
         value_type: U_WORD
-        read_lambda: return id(pm_unknown5).raw_state;
+        read_lambda: return id(pm_unknown5).get_raw_state();
       - address: 0x77
         value_type: U_WORD
-        read_lambda: return id(f_value).raw_state;
+        read_lambda: return id(f_value).get_raw_state();
       - address: 0x78
         value_type: U_WORD
         read_lambda: return 0;

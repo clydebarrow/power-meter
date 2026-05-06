@@ -14,17 +14,20 @@ sensor:
     device_class: power
 
 number:
+  # Settable number to control grid import/export.
+  # Postive values will import from the grid, negative will export.
   - platform: template
     id: grid_offset
     name: Grid Offset
     min_value: -10000.0
-    max_value: 10000.0
+    max_value: 14000.0
     step: 500
     restore_value: true
     initial_value: 0.0
     optimistic: true
 
 script:
+  # Calculate offsets for each inverter to balance energy.
   - id: adjust_offsets
     then:
       lambda: |-
