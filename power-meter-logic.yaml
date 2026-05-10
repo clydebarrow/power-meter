@@ -161,8 +161,11 @@ script:
         ESP_LOGD("offsets", "total pwr = %f, pwr_1=%f vs target=%f, pwr_2=%f vs target=%f", total_power, b1.power, p1_final, b2.power, p2_final);
         ESP_LOGD("offsets", "Grid offset %f, Offset 1 = %f, Offset 2 = %f", id(grid_offset).state, offset1, offset2);
 
-        id(inverter_1_power_offset).publish_state(offset1 + id(grid_offset).state);
-        id(inverter_2_power_offset).publish_state(offset2 + id(grid_offset).state);
+        // ensure that baseline power is net export, not import - allow small export
+        const int base_offset = -50;
+
+        id(inverter_1_power_offset).publish_state(offset1 + id(grid_offset).state + base_offset);
+        id(inverter_2_power_offset).publish_state(offset2 + id(grid_offset).state + base_offset);
 
 
 
