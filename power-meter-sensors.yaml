@@ -28,19 +28,17 @@ sensor:
 
   - platform: homeassistant
     id: sensor_battery_power_1
-    entity_id: sensor.bms_battery_power
+    entity_id: sensor.goodwe_yellow_battery_power
     on_value:
       then:
-        - script.execute: adjust_offsets
         - script.execute:
             id: update_battery_power_1
             x: !lambda return x;
 
   - platform: homeassistant
     id: sensor_battery_power_2
-    entity_id: sensor.white_bms_battery_power
+    entity_id: sensor.goodwe_white_battery_power
     on_value:
-      - script.execute: adjust_offsets
       - script.execute:
           id: update_battery_power_2
           x: !lambda return x;
@@ -86,16 +84,6 @@ sensor:
           x: !lambda return x;
 
 
-  - platform: homeassistant
-    id: inverter_1_battery_power
-    entity_id: sensor.bms_battery_power
-    on_value:
-      script.execute: adjust_offsets
-  - platform: homeassistant
-    id: inverter_2_battery_power
-    entity_id: sensor.white_bms_battery_power
-    on_value:
-      script.execute: adjust_offsets
   - platform: homeassistant
     id: inverter_2_battery_charge_state
     entity_id: sensor.white_bms_orient_charge

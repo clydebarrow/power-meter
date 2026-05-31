@@ -26,6 +26,24 @@ number:
     initial_value: 0.0
     optimistic: true
 
+  # Fraction of the computed balancing correction applied each cycle.
+  # Lower = more damping / slower convergence; 1.0 = full (deadbeat) correction.
+  - platform: template
+    id: balance_damping
+    name: Balance Damping
+    min_value: 0.05
+    max_value: 1.0
+    step: 0.05
+    restore_value: true
+    initial_value: 0.3
+    optimistic: true
+
+# Run the balancing loop on a fixed cadence, decoupled from HA sensor update jitter.
+interval:
+  - interval: 3s
+    then:
+      - script.execute: adjust_offsets
+
 script:
   # Calculate offsets for each inverter to balance energy.
   - id: adjust_offsets
@@ -50,14 +68,14 @@ script:
         // capacity corrected for min 10% SOC
         BatteryState b1{
           clamp_at_least((id(inverter_1_battery_charge_state).state - 10) / 0.9, 0.0),
-          -id(inverter_1_battery_power).state,
+          -id(sensor_battery_power_1).state,
           360.0,
           5000,
           5000
         };
         BatteryState b2{
           clamp_at_least((id(inverter_2_battery_charge_state).state - 10) / 0.9, 0.0),
-          -id(inverter_2_battery_power).state,
+          -id(sensor_battery_power_2).state,
           414.0,
           5000,
           5000
@@ -157,6 +175,12 @@ script:
     
         auto offset1    = p1_final - b1.power;
         auto offset2    = p2_final - b2.power;
+
+        // Apply only a fraction of the correction each cycle to damp oscillation.
+        // Damping both equally preserves conservation (offset1 + offset2 == 0).
+        const double damping = id(balance_damping).state;
+        offset1 *= damping;
+        offset2 *= damping;
 
         ESP_LOGD("offsets", "total pwr = %f, pwr_1=%f vs target=%f, pwr_2=%f vs target=%f", total_power, b1.power, p1_final, b2.power, p2_final);
         ESP_LOGD("offsets", "Grid offset %f, Offset 1 = %f, Offset 2 = %f", id(grid_offset).state, offset1, offset2);
