@@ -30,14 +30,14 @@ sensor:
     id: sensor_battery_power_1
     entity_id: sensor.goodwe_yellow_battery_power
     on_value:
-      then:
-        - script.execute:
-            id: update_battery_power_1
-            x: !lambda return x;
+      - script.execute:
+          id: update_battery_power_1
+          x: !lambda return x;
 
   - platform: homeassistant
     id: sensor_battery_power_2
     entity_id: sensor.goodwe_white_battery_power
+
     on_value:
       - script.execute:
           id: update_battery_power_2

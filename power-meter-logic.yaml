@@ -40,7 +40,7 @@ number:
 
 # Run the balancing loop on a fixed cadence, decoupled from HA sensor update jitter.
 interval:
-  - interval: 3s
+  - interval: 5s
     then:
       - script.execute: adjust_offsets
 

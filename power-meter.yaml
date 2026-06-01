@@ -99,10 +99,11 @@ usb_uart:
 ch422g:
 
 packages:
-  base: !include standard.yaml
-  lvgl: !include power-meter-lvgl.yaml
-  modbus: !include power-meter-modbus.yaml
-  climate: !include power-meter-logic.yaml
+  - !include standard.yaml
+  - !include power-meter-lvgl.yaml
+  - !include power-meter-modbus.yaml
+  - !include power-meter-logic.yaml
+  - !include power-meter-sensors.yaml
 
 i2c:
   sda: 8
