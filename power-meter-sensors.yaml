@@ -1,7 +1,7 @@
 sensor:
   - platform: homeassistant
     id: sensor_pv_power_1
-    entity_id: sensor.goodwe_yellow_pv_power
+    entity_id: sensor.goodwe_pv_power
     on_value:
       - script.execute:
           id: update_pv_power_1
@@ -28,7 +28,7 @@ sensor:
 
   - platform: homeassistant
     id: sensor_battery_power_1
-    entity_id: sensor.goodwe_yellow_battery_power
+    entity_id: sensor.goodwe_battery_power
     on_value:
       - script.execute:
           id: update_battery_power_1
@@ -56,7 +56,7 @@ sensor:
 
   - platform: homeassistant
     id: sensor_battery_charge_1
-    entity_id: sensor.goodwe_yellow_battery_charge_state
+    entity_id: sensor.goodwe_battery_state_of_charge
     on_value:
       - script.execute:
           id: update_battery_charge_1
