@@ -1,6 +1,7 @@
 modbus:
   - id: modbus1
     uart_id: uch_1
+    turnaround_time: 0ms
   - id: modbus2
     uart_id: uch_2
     role: server
@@ -10,7 +11,7 @@ modbus:
 
 
 modbus_controller:
-  - id: modbus_client
+  - id: client_id
     update_interval: 0.5s
     address: 0x3   ## address of the Modbus slave device on the bus
     modbus_id: modbus1
@@ -282,7 +283,7 @@ modbus_server:
 
 sensor:
 - platform: modbus_controller
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   id: pm_absorb
   name: "Absorbing Energy"
   register_type: holding
@@ -294,7 +295,7 @@ sensor:
   filters:
     - multiply: 0.001
 - platform: modbus_controller
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   id: pm_release
   name: "Releasing Energy"
   register_type: holding
@@ -310,7 +311,7 @@ sensor:
         send_every: 5
     - timeout: 15s
 - platform: modbus_controller
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   id: pm_reactive
   name: "Reactive Energy"
   register_type: holding
@@ -326,7 +327,7 @@ sensor:
         send_every: 5
     - timeout: 15s
 - platform: modbus_controller
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   id: pm_capacitive
   name: "Capacitive Reactive Energy"
   register_type: holding
@@ -339,12 +340,12 @@ sensor:
     - multiply: 0.001
 
 - platform: modbus_controller
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   id: pm_volts
   name: "AC Voltage"
   register_type: holding
   address: 0x61
-  register_count: 3
+  reuse_previous_range: true
   device_class: "voltage"
   state_class: measurement
   unit_of_measurement: "V"
@@ -364,11 +365,11 @@ sensor:
             
 - platform: modbus_controller
   id: pm_current
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   name: "AC Current"
   register_type: holding
   address: 0x64
-  register_count: 2
+  reuse_previous_range: true
   device_class: "current"
   state_class: measurement
   unit_of_measurement: "A"
@@ -382,17 +383,17 @@ sensor:
 - platform: modbus_controller
   id: pm_unknown1
   name: PM Unknown 1
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   register_type: holding
   address: 0x66
+  reuse_previous_range: true
 - platform: modbus_controller
   id: pm_power
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   name: "AC Power"
   register_type: holding
   address: 0x67
   value_type: S_WORD
-  register_count: 3
   device_class: "power"
   state_class: measurement
   unit_of_measurement: "W"
@@ -409,61 +410,61 @@ sensor:
 - platform: modbus_controller
   id: pm_power_2
   name: "AC Power 2"
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   register_type: holding
   address: 0x6A
+  reuse_previous_range: true
 - platform: modbus_controller
   id: q_value
   name: "Reactive power"
   unit_of_measurement: "VAR"
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   state_class: measurement
   register_type: holding
   value_type: S_WORD
   address: 0x6B
-  register_count: 3
 - platform: modbus_controller
   id: pm_unknown3
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   register_type: holding
   address: 0x6E
+  reuse_previous_range: true
 - platform: modbus_controller
   name: "Apparent power"
   unit_of_measurement: "VA"
   state_class: measurement
   id: s_value
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   register_type: holding
   address: 0x6F
-  register_count: 3
 - platform: modbus_controller
   id: pm_unknown4
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   register_type: holding
   address: 0x72
+  reuse_previous_range: true
 - platform: modbus_controller
   id: pm_pf
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   name: "Power factor"
   register_type: holding
   address: 0x73
-  register_count: 3
   value_type: S_WORD
   state_class: measurement
   filters:
     - multiply: 0.01
 - platform: modbus_controller
   id: pm_unknown5
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   register_type: holding
   address: 0x76
+  reuse_previous_range: true
 - platform: modbus_controller
   id: f_value
   name: "AC Frequency"
-  modbus_controller_id: modbus_client
+  modbus_controller_id: client_id
   register_type: holding
   address: 0x77
-  register_count: 4
   value_type: U_WORD
   device_class: frequency
   state_class: measurement

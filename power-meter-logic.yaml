@@ -156,22 +156,17 @@ script:
         const double p1_new_unclamped = b1.power + raw_offset1;
         const double p2_new_unclamped = b2.power + raw_offset2;
     
-        const double p1_clamped = std::clamp(p1_new_unclamped,
-                                             -b1.max_discharge,
-                                              b1.max_charge);
-        const double p2_clamped = std::clamp(p2_new_unclamped,
-                                             -b2.max_discharge,
-                                              b2.max_charge);
-    
-        // If one battery was clamped, redirect the surplus to the other so that
-        // total power is preserved as closely as possible.
-        const double surplus1 = p1_clamped - p1_new_unclamped; // 0 if not clamped
-        const double surplus2 = p2_clamped - p2_new_unclamped;
-    
-        double p1_final = std::clamp(p1_clamped + surplus2,
-                                     -b1.max_discharge, b1.max_charge);
-        double p2_final = std::clamp(p2_clamped + surplus1,
-                                     -b2.max_discharge, b2.max_charge);
+        // Never let one battery charge from the other: both must move in the same
+        // direction as the total, so each target lies between 0 and total_power.
+        // Battery 2 takes whatever battery 1 doesn't, preserving the total.
+        const double same_dir_lo = std::min(0.0, total_power);
+        const double same_dir_hi = std::max(0.0, total_power);
+        double p1_final = std::clamp(p1_new_unclamped, same_dir_lo, same_dir_hi);
+        // Hardware limits: keep p1 within its own limits and leave p2 within its limits.
+        p1_final = std::clamp(p1_final, -b1.max_discharge, b1.max_charge);
+        p1_final = std::clamp(p1_final, total_power - b2.max_charge, total_power + b2.max_discharge);
+        double p2_final = total_power - p1_final;
+        (void) p2_new_unclamped;
     
         auto offset1    = p1_final - b1.power;
         auto offset2    = p2_final - b2.power;

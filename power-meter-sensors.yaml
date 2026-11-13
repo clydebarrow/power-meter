@@ -86,7 +86,7 @@ sensor:
 
   - platform: homeassistant
     id: inverter_2_battery_charge_state
-    entity_id: sensor.white_bms_orient_charge
+    entity_id: sensor.goodwe_white_battery_charge_state
 
   - platform: homeassistant
     id: jakiper_charge_state

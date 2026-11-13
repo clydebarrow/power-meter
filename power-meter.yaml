@@ -26,6 +26,7 @@ web_server:
   auth:
     username: esphome
     password: !secret wifi_password
+    type: digest
 
 logger:
   level: DEBUG
