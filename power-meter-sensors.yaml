@@ -101,9 +101,20 @@ sensor:
 #    id: inverter_1_battery_charge_state
 #    entity_id: sensor.battery_state_of_charge
 
+  # Average of the two BMS readings; if one is unavailable use the other,
+  # and if both are, fall back to the inverter's own SOC (may be NaN).
   - platform: template
     id: inverter_1_battery_charge_state
+    update_interval: 10s
     lambda: |-
-      return (id(byd_charge_state).state + id(jakiper_charge_state).state)/ 2.0;
+      const float byd = id(byd_charge_state).state;
+      const float jak = id(jakiper_charge_state).state;
+      if (!std::isnan(byd) && !std::isnan(jak))
+        return (byd + jak) / 2.0f;
+      if (!std::isnan(byd))
+        return byd;
+      if (!std::isnan(jak))
+        return jak;
+      return id(sensor_battery_charge_1).state;
 
 
